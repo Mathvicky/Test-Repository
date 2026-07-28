@@ -1,2 +1,2 @@
 # Test-Repository
-God is great
+God is always great
