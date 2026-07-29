@@ -1,2 +1,2 @@
 # Test-Repository
-God is always great
+Dace is the index of the mind.
