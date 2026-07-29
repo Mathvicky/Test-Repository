@@ -1,2 +1,2 @@
 # Test-Repository
-Dace is the index of the mind.
+Face is the index of the mind.
