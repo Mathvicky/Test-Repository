@@ -1,0 +1,54 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and Push Docker Image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/my-app:latest
+            ${{ secrets.DOCKER_USERNAME }}/my-app:${{ github.sha }}
+
+  update-k8s-manifest:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Kubernetes Repo
+        uses: actions/checkout@v4
+        with:
+          # Replace with your actual GitHub Organization/User and Kubernetes Repo name
+          repository: 'https://github.com/Mathvicky/Kubernets-Repo.git'
+          token: ${{ secrets.K8S_REPO_PAT }}
+          ref: 'main'
+
+      - name: Update Image Tag in Deployment Manifest
+        run: |
+          # Use sed to update the image tag dynamically using the GitHub Commit SHA
+          # Assumes your manifest has a line like: image: username/my-app:old-tag
+          sed -i "s|image: .*|image: ${{ secrets.DOCKER_USERNAME }}/my-app:${{ github.sha }}|g" deployment.yaml
+
+      - name: Commit and Push Changes to K8s Repo
+        run: |
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add deployment.yaml
+          git commit -m "chore: update application image tag to ${{ github.sha }} [skip ci]"
+          git push origin main
