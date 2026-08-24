@@ -200,6 +200,30 @@ Resources:
           PredefinedMetricType: ASGAverageCPUUtilization
         TargetValue: 50.0
 
+          MonitoringInstance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: !Ref LatestAmiId
+      InstanceType: t3.micro
+      SubnetId: !Ref PublicSubnet1
+      SecurityGroupIds:
+        - !Ref MonitoringSecurityGroup
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          dnf install -y docker git
+          systemctl enable --now docker
+
+          curl -SL https://github.com/docker/compose/releases/latest/download/docker-compose-linux-x86_64 \
+            -o /usr/local/bin/docker-compose
+          chmod +x /usr/local/bin/docker-compose
+
+          git clone --branch aws-cloudformation-project \
+            https://github.com/Mathvicky/Test-Repository.git /opt/project
+
+          cd /opt/project/monitoring
+          /usr/local/bin/docker-compose -f compose.yaml up -d
+
 Outputs:
   LoadBalancerURL:
     Description: Application Load Balancer URL
