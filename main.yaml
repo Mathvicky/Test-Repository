@@ -102,7 +102,7 @@ Resources:
           ToPort: 80
           SourceSecurityGroupId: !Ref LoadBalancerSecurityGroup
 
-           MonitoringSecurityGroup:
+  MonitoringSecurityGroup:
     Type: AWS::EC2::SecurityGroup
     Properties:
       GroupDescription: Allow Prometheus and Grafana access
