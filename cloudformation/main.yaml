@@ -162,7 +162,7 @@ Resources:
         - Type: forward
           TargetGroupArn: !Ref WebTargetGroup
 
-            WebAutoScalingGroup:
+  WebAutoScalingGroup:
     Type: AWS::AutoScaling::AutoScalingGroup
     Properties:
       VPCZoneIdentifier:
@@ -179,7 +179,7 @@ Resources:
       TargetGroupARNs:
         - !Ref WebTargetGroup
 
-          CPUScalingPolicy:
+  CPUScalingPolicy:
     Type: AWS::AutoScaling::ScalingPolicy
     Properties:
       AutoScalingGroupName: !Ref WebAutoScalingGroup
@@ -188,3 +188,14 @@ Resources:
         PredefinedMetricSpecification:
           PredefinedMetricType: ASGAverageCPUUtilization
         TargetValue: 50.0
+
+  ApplicationLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Scheme: internet-facing
+      Type: application
+      SecurityGroups:
+        - !Ref LoadBalancerSecurityGroup
+      Subnets:
+        - !Ref PublicSubnet1
+        - !Ref PublicSubnet2
