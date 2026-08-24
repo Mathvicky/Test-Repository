@@ -178,3 +178,13 @@ Resources:
         Version: !GetAtt WebLaunchTemplate.LatestVersionNumber
       TargetGroupARNs:
         - !Ref WebTargetGroup
+
+          CPUScalingPolicy:
+    Type: AWS::AutoScaling::ScalingPolicy
+    Properties:
+      AutoScalingGroupName: !Ref WebAutoScalingGroup
+      PolicyType: TargetTrackingScaling
+      TargetTrackingConfiguration:
+        PredefinedMetricSpecification:
+          PredefinedMetricType: ASGAverageCPUUtilization
+        TargetValue: 50.0
