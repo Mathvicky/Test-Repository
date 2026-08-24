@@ -1,6 +1,11 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Description: AWS DevOps project using CloudFormation
 
+Parameters:
+  LatestAmiId:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-x86_64
+
 Resources:
   ProjectVPC:
     Type: AWS::EC2::VPC
@@ -93,3 +98,36 @@ Resources:
           FromPort: 80
           ToPort: 80
           SourceSecurityGroupId: !Ref LoadBalancerSecurityGroup
+          
+  WebLaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    Properties:
+      LaunchTemplateData:
+        ImageId: !Ref LatestAmiId
+        InstanceType: t3.micro
+        SecurityGroupIds:
+          - !Ref EC2SecurityGroup
+        UserData:
+          Fn::Base64: !Sub |
+            #!/bin/bash
+            dnf update -y
+            dnf install -y docker
+            systemctl enable --now docker
+
+            mkdir -p /opt/web
+            cat > /opt/web/index.html <<'EOF'
+            <!DOCTYPE html>
+            <html>
+            <body>
+              <h1>AWS CloudFormation DevOps Project</h1>
+              <p>Nginx is running inside Docker.</p>
+            </body>
+            </html>
+            EOF
+
+            docker run -d \
+              --name nginx \
+              --restart unless-stopped \
+              -p 80:80 \
+              -v /opt/web/index.html:/usr/share/nginx/html/index.html:ro \
+              nginx:stable
